@@ -255,18 +255,18 @@ class HttpLink extends Link {
 
 
   String getHttpBody(Request request) {
-    http.Request httpRequest = _prepareRequest(request);
-    return httpRequest.body;
+    final http.BaseRequest httpRequest = _prepareRequest(request);
+    return (httpRequest as http.Request).body;
   }
 
   Future<Response> parseHttpResponse(http.Response httpResponse) async{
     try {
       final responseBody = await httpResponseDecoder(httpResponse);
       return parser.parseResponse(responseBody!);
-    } catch (e) {
-      throw HttpLinkParserException(
+    } catch (e, stackTrace) {
+      throw ContextReadException(
         originalException: e,
-        response: httpResponse,
+        originalStackTrace: stackTrace,
       );
     }
   }
