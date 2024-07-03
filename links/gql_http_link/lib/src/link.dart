@@ -217,6 +217,41 @@ class HttpLink extends Link {
   Future<void> dispose() async {
     _httpClient?.close();
   }
+
+  String getHttpBody(Request request) {
+    final http.BaseRequest httpRequest = _prepareRequest(request);
+    return (httpRequest as http.Request).body;
+  }
+
+  Future<Response> parseHttpResponse(http.Response httpResponse) async{
+    try {
+      final responseBody = await httpResponseDecoder(httpResponse);
+      return parser.parseResponse(responseBody!);
+    } catch (e, stackTrace) {
+      throw ContextReadException(
+        originalException: e,
+        originalStackTrace: stackTrace,
+      );
+    }
+  }
+
+  Context updateResponseContext(
+      Response response,
+      http.Response httpResponse,
+      ) {
+    try {
+      return response.context.withEntry(
+        HttpLinkResponseContext(
+          statusCode: httpResponse.statusCode,
+          headers: httpResponse.headers,
+        ),
+      );
+    } catch (e) {
+      throw ContextWriteException(
+        originalException: e,
+      );
+    }
+  }
 }
 
 Map<String, String> _getHttpLinkHeaders(Request request) {
